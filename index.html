@@ -1,0 +1,215 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111111">
+<title>Kotoba Log</title>
+<style>
+:root{--bg:#f5f5f3;--card:#fff;--ink:#151515;--muted:#888;--line:#e9e9e6;--soft:#f0f0ee;--accent:#111}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif}
+button,input,textarea,select{font:inherit}button{cursor:pointer}
+.app{max-width:540px;margin:auto;min-height:100dvh;padding:env(safe-area-inset-top) 18px calc(94px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;padding:24px 2px 20px}
+.brand{font-size:13px;letter-spacing:2.8px;font-weight:800}.date{font-size:11px;color:var(--muted);letter-spacing:1px}
+h1{font-size:31px;letter-spacing:-1.2px;margin:8px 0 4px}.sub{color:var(--muted);font-size:13px}
+.hero{background:#111;color:#fff;border-radius:22px;padding:22px;margin:22px 0 20px;position:relative;overflow:hidden}
+.hero:after{content:"言";position:absolute;right:17px;top:0;font-size:110px;color:#ffffff0d;font-weight:200}
+.hero small{color:#aaa;letter-spacing:1.5px}.hero strong{display:block;font-size:44px;margin:9px 0 2px;letter-spacing:-2px}.hero p{color:#aaa;font-size:12px;margin:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:27px}.stat{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 12px}.stat b{font-size:23px;display:block}.stat span{font-size:11px;color:var(--muted)}
+.section-head{display:flex;justify-content:space-between;align-items:center;margin:24px 1px 12px}.section-head h2{font-size:16px;margin:0}.section-head button{border:0;background:none;color:#777;font-size:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:17px;overflow:hidden}
+.item{display:flex;align-items:center;gap:12px;padding:15px;border-bottom:1px solid var(--line)}.item:last-child{border-bottom:0}
+.rank{width:25px;color:#aaa;font-size:13px;font-weight:700}.item-main{flex:1;min-width:0}.term{font-size:15px;font-weight:700}.meaning{font-size:12px;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.count{font-size:11px;background:#f0f0ee;padding:7px 9px;border-radius:20px;white-space:nowrap}
+.tabs{display:flex;gap:6px;background:#ededeb;padding:4px;border-radius:12px;margin:16px 0}.tabs button{flex:1;border:0;background:transparent;padding:10px;border-radius:9px;font-size:13px;color:#777}.tabs button.active{background:#fff;color:#111;box-shadow:0 1px 4px #0000000d;font-weight:700}
+.search{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:13px;background:#fff;outline:none;margin-bottom:12px}
+.primary{border:0;background:#111;color:#fff;padding:14px 17px;border-radius:13px;font-weight:650}.secondary{border:1px solid var(--line);background:#fff;color:#111;padding:12px 15px;border-radius:12px}
+.fab{position:fixed;bottom:calc(83px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);border:0;border-radius:30px;background:#111;color:#fff;padding:14px 22px;box-shadow:0 8px 25px #0002;font-size:13px;font-weight:700;z-index:5}
+.nav{position:fixed;bottom:0;left:0;right:0;background:#ffffffed;backdrop-filter:blur(18px);border-top:1px solid var(--line);padding:10px 10px calc(10px + env(safe-area-inset-bottom));display:flex;justify-content:center;gap:0;z-index:4}.nav button{border:0;background:none;color:#999;flex:1;max-width:130px;font-size:10px;padding:5px}.nav button span{display:block;font-size:19px;margin-bottom:4px}.nav button.active{color:#111;font-weight:700}
+.page{display:none}.page.active{display:block}.empty{text-align:center;padding:38px 18px;color:#999;font-size:13px}.empty b{display:block;color:#333;font-size:15px;margin-bottom:8px}
+.danger{width:100%;border:1px solid #d8b8b8;background:#fff7f7;color:#a33;border-radius:13px;padding:13px;font:inherit;font-weight:600;margin-top:10px}.danger:active{background:#f8eaea}
+.modal-wrap{display:none;position:fixed;inset:0;background:#0007;z-index:10;align-items:flex-end;justify-content:center}.modal-wrap.show{display:flex}.modal{background:#f8f8f6;width:100%;max-width:540px;border-radius:24px 24px 0 0;padding:22px 20px calc(24px + env(safe-area-inset-bottom));max-height:90dvh;overflow:auto}.modal-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px}.modal h2{font-size:19px;margin:0}.close{border:0;background:#e9e9e7;border-radius:50%;width:32px;height:32px;font-size:18px}
+label{display:block;font-size:12px;color:#666;margin:14px 0 7px}.field{width:100%;border:1px solid #e3e3df;background:#fff;border-radius:12px;padding:13px;outline:none}.field:focus,.search:focus{border-color:#777}textarea.field{min-height:75px;resize:vertical}.photo-box{border:1px dashed #ccc;border-radius:13px;padding:15px;background:#fff;font-size:12px;color:#777}.photo-box input{width:100%;margin-top:9px}.preview{max-width:100%;max-height:180px;display:block;margin-top:10px;border-radius:10px}.photo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.photo-actions button{font-size:12px}.ocr-panel{display:none;margin-top:14px}.ocr-panel.show{display:block}.ocr-panel textarea{min-height:130px}.ocr-help{font-size:11px;color:#888;line-height:1.6;margin-top:7px}.ocr-status{font-size:12px;color:#666;margin-top:9px;line-height:1.5}
+.notice{display:none;margin-top:12px;background:#ededeb;border-radius:12px;padding:12px;font-size:12px;line-height:1.6}.notice.show{display:block}.full{width:100%;margin-top:18px}
+.detail-line{font-size:12px;color:#777;margin-top:7px}.tag{font-size:10px;color:#666;border:1px solid #ddd;padding:4px 7px;border-radius:20px}
+.toast{position:fixed;top:calc(15px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);background:#111;color:#fff;padding:11px 16px;border-radius:20px;font-size:12px;z-index:20;display:none;max-width:90%;text-align:center}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="brand">KOTOBA LOG</div><div class="date" id="today"></div></header>
+<section id="home" class="page active">
+  <h1>你的日语记录。</h1><div class="sub">每一次遇见，都值得被记住。</div>
+  <div class="hero"><small>MY LEARNING ARCHIVE</small><strong id="totalCount">0</strong><p>累计收录知识点</p></div>
+  <div class="stats">
+    <div class="stat"><b id="wordCount">0</b><span>单词</span></div>
+    <div class="stat"><b id="grammarCount">0</b><span>语法</span></div>
+    <div class="stat"><b id="repeatCount">0</b><span>重复遇见</span></div>
+  </div>
+  <div class="section-head"><h2>最近记录</h2><button onclick="switchPage('library')">查看全部 →</button></div>
+  <div class="card" id="recentList"></div>
+  <div class="section-head"><h2>最常遇见</h2><button onclick="switchPage('ranking')">排行榜 →</button></div>
+  <div class="card" id="topList"></div>
+</section>
+<section id="library" class="page">
+  <h1>知识库</h1><div class="sub">所有遇见过的日语知识点。</div>
+  <div class="tabs" id="libraryTabs"><button class="active" data-filter="全部">全部</button><button data-filter="单词">单词</button><button data-filter="语法">语法</button></div>
+  <input class="search" id="searchInput" placeholder="搜索日语 / 中文释义…">
+  <div class="card" id="libraryList"></div>
+</section>
+<section id="ranking" class="page">
+  <h1>重复排行榜</h1><div class="sub">看看哪些知识点最常与你相遇。</div>
+  <div class="tabs" id="rankTabs"><button class="active" data-filter="单词">单词</button><button data-filter="语法">语法</button></div>
+  <div class="card" id="rankList"></div>
+</section>
+<section id="profile" class="page">
+  <h1>归档设置</h1><div class="sub">你的学习数据保存在当前浏览器中。</div>
+  <div class="card" style="padding:17px;margin-top:20px">
+    <b>数据管理</b><p class="sub" style="line-height:1.7">目前是本机体验版。建议定期导出备份。换浏览器或清除网站数据可能导致记录丢失。</p>
+    <button class="secondary" onclick="exportData()">导出数据备份</button>
+    <button class="secondary" style="margin-left:6px" onclick="document.getElementById('importFile').click()">导入备份</button>
+    <input id="importFile" type="file" accept="application/json" hidden>
+  </div>
+  <div class="card" style="padding:17px;margin-top:12px">
+    <b>版本说明</b><p class="sub" style="line-height:1.7">当前版本支持手动录入、照片附件、日语 OCR 识别及编辑、重复计数和独立排行榜。数据保存在当前浏览器中。</p>
+  </div>
+</section>
+</div>
+<button class="fab" onclick="openModal()">＋ 记录新知识点</button>
+<nav class="nav">
+  <button class="active" data-page="home"><span>⌂</span>首页</button>
+  <button data-page="library"><span>▤</span>知识库</button>
+  <button data-page="ranking"><span>↗</span>排行榜</button>
+  <button data-page="profile"><span>◯</span>我的</button>
+</nav>
+<div class="modal-wrap" id="modalWrap">
+ <div class="modal">
+  <div class="modal-top"><h2 id="modalTitle">记录知识点</h2><button class="close" onclick="closeModal()">×</button></div>
+  <label>知识点类别</label><select class="field" id="category"><option>单词</option><option>语法</option><option>其他</option></select>
+  <label>日语内容 *</label><input class="field" id="term" placeholder="例如：懐かしい / ～わけではない">
+  <label>中文释义 / 语法说明</label><textarea class="field" id="meaning" placeholder="写下它的意思、用法或例句…"></textarea>
+  <label>关联笔记照片（可选）</label><div class="photo-box">添加试卷、课本或手写笔记照片<input type="file" id="photo" accept="image/*" capture="environment"></div>
+  <img id="photoPreview" class="preview" hidden>
+  <div class="photo-actions" id="photoActions" hidden>
+    <button class="secondary" type="button" onclick="runOCR()">扫描识别日语文字</button>
+    <button class="secondary" type="button" onclick="removePhoto()">删除照片</button>
+  </div>
+  <div class="ocr-panel" id="ocrPanel">
+    <label for="ocrText">识别结果（可以直接修改）</label>
+    <textarea class="field" id="ocrText" placeholder="识别出的文字会显示在这里，你可以自行修改…"></textarea>
+    <div class="ocr-help">识别结果可能有误，请检查假名、汉字和长音符号。修改后，可将需要记录的单词或语法复制到上方“日语内容”栏，再选择类别保存。每条知识点建议单独保存。</div>
+    <button class="secondary" type="button" style="margin-top:10px" onclick="useOCRText()">将识别结果填入日语内容</button>
+    <div class="ocr-status" id="ocrStatus"></div>
+  </div>
+  <div id="duplicateNotice" class="notice"></div>
+  <div class="detail-line" id="editMeta" hidden></div>
+  <button class="secondary full" id="masteredButton" type="button" onclick="toggleMastered()" hidden></button>
+  <button class="danger full" id="deleteButton" type="button" onclick="deleteItem()" hidden>删除这个知识点</button>
+  <button class="primary full" id="saveButton" onclick="saveItem()">保存记录</button>
+ </div>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const KEY='kotoba-log-v1';
+let items=[];try{items=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){items=[]}
+let libraryFilter='全部',rankFilter='单词',photoData=null,editingId=null;
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const norm=s=>String(s||'').trim().normalize('NFKC').toLocaleLowerCase();
+function persist(){localStorage.setItem(KEY,JSON.stringify(items))}
+function sorted(arr){return [...arr].sort((a,b)=>b.count-a.count||b.updated-a.updated)}
+function row(x,i=null){return `<div class="item" onclick="showDetail('${x.id}')">${i!==null?`<div class="rank">${String(i+1).padStart(2,'0')}</div>`:''}<div class="item-main"><div class="term">${esc(x.term)}</div><div class="meaning">${esc(x.meaning||'尚未添加释义')}</div></div><div class="count">${x.count} 次</div></div>`}
+function empty(msg='还没有记录'){return `<div class="empty"><b>${msg}</b>添加遇到的日语知识点，它们会出现在这里。</div>`}
+function render(){
+ const words=items.filter(x=>x.category==='单词'),grams=items.filter(x=>x.category==='语法');
+ $('totalCount').textContent=items.length;$('wordCount').textContent=words.length;$('grammarCount').textContent=grams.length;$('repeatCount').textContent=items.filter(x=>x.count>1).length;
+ $('recentList').innerHTML=items.length?[...items].sort((a,b)=>b.updated-a.updated).slice(0,4).map(x=>row(x)).join(''):empty();
+ $('topList').innerHTML=items.length?sorted(items).slice(0,3).map((x,i)=>row(x,i)).join(''):empty();
+ const q=norm($('searchInput').value);
+ const lib=items.filter(x=>(libraryFilter==='全部'||x.category===libraryFilter)&&(norm(x.term+' '+x.meaning).includes(q)));
+ $('libraryList').innerHTML=lib.length?lib.sort((a,b)=>b.updated-a.updated).map(x=>row(x)).join(''):empty('没有找到匹配内容');
+ const r=sorted(items.filter(x=>x.category===rankFilter));
+ $('rankList').innerHTML=r.length?r.map((x,i)=>row(x,i)).join(''):empty('这个排行榜还空着');
+}
+function switchPage(id){document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.page===id));render()}
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>switchPage(b.dataset.page));
+$('libraryTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{libraryFilter=b.dataset.filter;$('libraryTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('rankTabs').querySelectorAll('button').forEach(b=>b.onclick=()=>{rankFilter=b.dataset.filter;$('rankTabs').querySelectorAll('button').forEach(x=>x.classList.toggle('active',x===b));render()});
+$('searchInput').addEventListener('input',render);
+function openModal(){
+ editingId=null;photoData=null;
+ $('modalTitle').textContent='记录知识点';$('saveButton').textContent='保存记录';$('editMeta').hidden=true;$('masteredButton').hidden=true;
+ $('category').value='单词';$('term').value='';$('meaning').value='';$('photo').value='';
+ $('photoPreview').removeAttribute('src');$('photoPreview').hidden=true;$('photoActions').hidden=true;
+ $('ocrPanel').classList.remove('show');$('ocrText').value='';$('ocrStatus').textContent='';
+ $('modalWrap').classList.add('show');$('term').focus();updateDuplicate();
+}
+function closeModal(){$('modalWrap').classList.remove('show')}
+$('term').addEventListener('input',updateDuplicate);$('category').addEventListener('change',updateDuplicate);
+function matchItem(){let t=norm($('term').value),c=$('category').value;return items.find(x=>norm(x.term)===t&&x.category===c)}
+function updateDuplicate(){let n=$('duplicateNotice');if(editingId){n.classList.remove('show');n.innerHTML='';return}let m=matchItem();if(m){n.classList.add('show');n.innerHTML=`↻ 已经记录过 <b>${m.count} 次</b>。保存后将更新为第 <b>${m.count+1} 次</b>。`}else{n.classList.remove('show');n.innerHTML=''}}
+$('photo').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;if(!f.type.startsWith('image/')){toast('请选择图片文件');return}let reader=new FileReader();reader.onload=()=>{photoData=reader.result;$('photoPreview').src=photoData;$('photoPreview').hidden=false;$('photoActions').hidden=false;$('ocrPanel').classList.remove('show');$('ocrText').value='';$('ocrStatus').textContent=''};reader.readAsDataURL(f)});
+function removePhoto(){photoData=null;$('photo').value='';$('photoPreview').removeAttribute('src');$('photoPreview').hidden=true;$('photoActions').hidden=true;$('ocrPanel').classList.remove('show');$('ocrText').value='';$('ocrStatus').textContent='';toast('照片已移除')}
+async function runOCR(){
+ if(!photoData){toast('请先选择照片');return}
+ const status=$('ocrStatus'),panel=$('ocrPanel'),button=document.querySelector('.photo-actions button');
+ panel.classList.add('show');status.textContent='正在加载日语识别组件，首次使用需要联网下载语言数据…';button.disabled=true;
+ try{
+  if(!window.Tesseract){await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js';script.onload=resolve;script.onerror=()=>reject(new Error('识别组件加载失败，请检查网络后重试'));document.head.appendChild(script)})}
+  const result=await Tesseract.recognize(photoData,'jpn+eng',{logger:m=>{if(m.status==='recognizing text')status.textContent=`正在识别文字… ${Math.round((m.progress||0)*100)}%`;else if(m.status)status.textContent=m.status==='loading language traineddata'?'正在下载日语识别数据…':m.status}});
+  $('ocrText').value=(result.data.text||'').trim();status.textContent=$('ocrText').value?'识别完成。请检查并修改结果，再填入日语内容。':'没有识别到清晰文字，可以换一张更清楚、光线更好的照片再试。';
+ }catch(err){status.textContent='识别暂时无法完成：'+(err.message||'请稍后重试');}
+ finally{button.disabled=false}
+}
+function useOCRText(){const value=$('ocrText').value.trim();if(!value){toast('识别结果为空');return}$('term').value=value;updateDuplicate();$('term').focus();toast('已填入日语内容；保存前还可以继续修改')}
+
+function saveItem(){
+ let term=$('term').value.trim();if(!term){toast('请先填写日语内容');return}
+ let category=$('category').value,meaning=$('meaning').value.trim();
+ if(editingId){
+  const target=items.find(x=>x.id===editingId);if(!target){toast('找不到这条记录，请刷新后重试');return}
+  target.term=term;target.meaning=meaning;target.category=category;target.photo=photoData;
+  target.editedAt=Date.now();
+  persist();closeModal();render();toast('知识点已修改，累计次数和原记录日期均已保留');return;
+ }
+ let found=items.find(x=>norm(x.term)===norm(term)&&x.category===category);
+ if(found){found.count++;found.updated=Date.now();if(meaning)found.meaning=meaning;if(photoData)found.photo=photoData;toast(`再次遇到！这是第 ${found.count} 次记录。`)}
+ else{items.push({id:crypto.randomUUID?crypto.randomUUID():String(Date.now()),term,meaning,category,count:1,created:Date.now(),updated:Date.now(),mastered:false,photo:photoData});toast('已保存，这是第一次记录。')}
+ persist();closeModal();render();
+}
+function showDetail(id){
+ const x=items.find(y=>y.id===id);if(!x)return;
+ editingId=id;photoData=x.photo||null;
+ $('modalTitle').textContent='编辑知识点';$('saveButton').textContent='保存修改';
+ $('category').value=x.category||'单词';$('term').value=x.term||'';$('meaning').value=x.meaning||'';
+ $('photo').value='';$('photoPreview').hidden=!photoData;
+ if(photoData){$('photoPreview').src=photoData;$('photoActions').hidden=false}else{$('photoPreview').removeAttribute('src');$('photoActions').hidden=true}
+ $('ocrPanel').classList.remove('show');$('ocrText').value='';$('ocrStatus').textContent='';
+ $('editMeta').hidden=false;$('editMeta').textContent=`累计遇到 ${x.count||1} 次 · 首次记录 ${new Date(x.created||Date.now()).toLocaleDateString()} · 最近遇到 ${new Date(x.updated||x.created||Date.now()).toLocaleDateString()}`;
+ $('masteredButton').hidden=false;$('masteredButton').textContent=x.mastered?'取消已掌握标记':'标记为已掌握';
+ $('deleteButton').hidden=false;
+ $('modalWrap').classList.add('show');updateDuplicate();
+}
+function deleteItem(){
+ const x=items.find(y=>y.id===editingId);if(!x)return;
+ if(!confirm(`确定删除「${x.term}」吗？删除后无法恢复。建议先导出备份。`))return;
+ items=items.filter(y=>y.id!==editingId);
+ persist();closeModal();render();editingId=null;photoData=null;
+ toast('知识点已删除');
+}
+function toggleMastered(){
+ const x=items.find(y=>y.id===editingId);if(!x)return;
+ x.mastered=!x.mastered;persist();
+ $('masteredButton').textContent=x.mastered?'取消已掌握标记':'标记为已掌握';
+ $('editMeta').textContent=`累计遇到 ${x.count||1} 次 · 首次记录 ${new Date(x.created||Date.now()).toLocaleDateString()} · 最近遇到 ${new Date(x.updated||x.created||Date.now()).toLocaleDateString()} · ${x.mastered?'已掌握':'未标记掌握'}`;
+ render();toast(x.mastered?'已标记为掌握':'已取消掌握标记');
+}
+function toast(s){let t=$('toast');t.textContent=s;t.style.display='block';setTimeout(()=>t.style.display='none',2400)}
+function exportData(){let blob=new Blob([JSON.stringify(items,null,2)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='kotoba-log-backup.json';a.click();URL.revokeObjectURL(a.href)}
+$('importFile').addEventListener('change',e=>{let f=e.target.files[0];if(!f)return;let r=new FileReader();r.onload=()=>{try{let data=JSON.parse(r.result);if(!Array.isArray(data))throw 0;if(confirm('导入会替换当前记录，确定继续吗？')){items=data;persist();render();toast('备份导入成功')}}catch(err){toast('文件格式不正确')}};r.readAsText(f)});
+$('today').textContent=new Date().toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'}).toUpperCase();
+render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js"></script>
+</body></html>
