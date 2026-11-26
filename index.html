@@ -127,7 +127,7 @@ label{display:block;font-size:12px;color:#666;margin:14px 0 7px}.field{width:100
 const SUPABASE_URL='https://xbggyvreyunoqqhtyxhr.supabase.co';
 const SUPABASE_PUBLISHABLE_KEY='sb_publishable_aUkoQZllhgXjPrEcmQeL5Q_S2cjRs4b';
 const cloudClient=window.supabase?.createClient(SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY);
-let cloudUser=null,cloudSyncTimer=null,cloudBusy=false,cloudSyncAgain=false;
+let cloudUser=null,cloudSyncTimer=null,cloudBusy=false,cloudSyncAgain=false,cloudInitialized=false;
 const cloudStatus=(message)=>{const el=document.getElementById('cloudStatus');if(el)el.textContent=message};
 const KEY='kotoba-log-v1';
 let items=[];try{items=JSON.parse(localStorage.getItem(KEY)||'[]')}catch(e){items=[]}
@@ -141,7 +141,7 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const norm=s=>String(s||'').trim().normalize('NFKC').toLocaleLowerCase();
 function persist(){
  localStorage.setItem(KEY,JSON.stringify(items));
- if(cloudUser&&cloudClient){clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>syncCloud(false),1200)}
+ if(cloudUser&&cloudClient){clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>syncCloud(false),300)}
 }
 function sorted(arr){return [...arr].sort((a,b)=>b.count-a.count||b.updated-a.updated)}
 function row(x,i=null){return `<div class="item" onclick="showDetail('${x.id}')">${i!==null?`<div class="rank">${String(i+1).padStart(2,'0')}</div>`:''}<div class="item-main"><div class="term">${esc(x.term)}</div><div class="meaning">${esc(x.meaning||'尚未添加释义')}</div></div><div class="count">${x.count} 次</div></div>`}
@@ -307,28 +307,37 @@ function mergeCloudItems(localItems,remoteItems){
 async function syncCloud(firstConnect=false){
  if(!cloudClient||!cloudUser)return;
  if(cloudBusy){cloudSyncAgain=true;return}
- cloudBusy=true;cloudStatus('正在同步云端备份…');
+ cloudBusy=true;
+ cloudStatus(cloudInitialized?'正在将本机最新更改上传云端…':'正在读取云端数据…');
  try{
-  const {data:remote,error}=await cloudClient.from('kotoba_backups').select('data,updated_at').eq('user_id',cloudUser.id).maybeSingle();
-  if(error)throw error;
-  if(remote&&Array.isArray(remote.data)){
-   items=mergeCloudItems(items,remote.data);
-   localStorage.setItem(KEY,JSON.stringify(items));render();
+  // 仅在本次登录后的首次同步时读取并合并云端快照。
+  // 后续每次本机新增、编辑、删除，都直接以上一刻本机完整数据覆盖云端，
+  // 避免旧云端快照在每次保存时反向覆盖刚刚做出的修改。
+  if(!cloudInitialized){
+   const {data:remote,error}=await cloudClient.from('kotoba_backups').select('data,updated_at').eq('user_id',cloudUser.id).maybeSingle();
+   if(error)throw error;
+   if(remote&&Array.isArray(remote.data)){
+    items=mergeCloudItems(items,remote.data);
+    localStorage.setItem(KEY,JSON.stringify(items));
+   }
+   cloudInitialized=true;
+   render();
   }
   const payload={user_id:cloudUser.id,data:[...items,...deletedRecords],updated_at:new Date().toISOString()};
   const {error:saveError}=await cloudClient.from('kotoba_backups').upsert(payload,{onConflict:'user_id'});
   if(saveError)throw saveError;
-  cloudStatus('云端备份已同步 · '+new Date().toLocaleString());
+  cloudStatus('云端已保存最新更改 · '+new Date().toLocaleTimeString());
  }catch(err){cloudStatus('同步失败：'+(err.message||'请检查网络和数据库设置'));}
  finally{
   cloudBusy=false;
-  if(cloudSyncAgain){cloudSyncAgain=false;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>syncCloud(false),300)}
+  if(cloudSyncAgain){cloudSyncAgain=false;clearTimeout(cloudSyncTimer);cloudSyncTimer=setTimeout(()=>syncCloud(false),100)}
  }
 }
 async function refreshCloudAuth(){
  if(!cloudClient){cloudStatus('云端组件加载失败，请刷新页面后重试。');return}
  const {data:{session},error}=await cloudClient.auth.getSession();
  if(error){cloudStatus('读取登录状态失败：'+error.message);return}
+ if(cloudUser?.id!==session?.user?.id)cloudInitialized=false;
  cloudUser=session?.user||null;
  $('cloudSignOut').hidden=!cloudUser;
  $('cloudSignIn').hidden=!!cloudUser;$('cloudSignUp').hidden=!!cloudUser;
@@ -351,11 +360,11 @@ $('cloudSignIn').addEventListener('click',async()=>{
  cloudStatus('正在登录…');
  const {data,error}=await cloudClient.auth.signInWithPassword({email,password});
  if(error){cloudStatus('登录失败：'+error.message);return}
- cloudUser=data.user;await refreshCloudAuth();
+ cloudUser=data.user;cloudInitialized=false;await refreshCloudAuth();
 });
 $('cloudSignOut').addEventListener('click',async()=>{
  const {error}=await cloudClient.auth.signOut();if(error){cloudStatus('退出失败：'+error.message);return}
- cloudUser=null;$('cloudSignOut').hidden=true;$('cloudSignIn').hidden=false;$('cloudSignUp').hidden=false;$('cloudEmail').disabled=false;$('cloudPassword').disabled=false;cloudStatus('已退出登录。本机数据仍保留。');
+ cloudUser=null;cloudInitialized=false;$('cloudSignOut').hidden=true;$('cloudSignIn').hidden=false;$('cloudSignUp').hidden=false;$('cloudEmail').disabled=false;$('cloudPassword').disabled=false;cloudStatus('已退出登录。本机数据仍保留。');
 });
 if(cloudClient){cloudClient.auth.onAuthStateChange((_event,session)=>{cloudUser=session?.user||null;$('cloudSignOut').hidden=!cloudUser;$('cloudSignIn').hidden=!!cloudUser;$('cloudSignUp').hidden=!!cloudUser;$('cloudEmail').disabled=!!cloudUser;$('cloudPassword').disabled=!!cloudUser;if(cloudUser)setTimeout(()=>syncCloud(true),0)});refreshCloudAuth()}
 
